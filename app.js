@@ -387,7 +387,7 @@ function renderPapers(activeTopics, activeYears, activeDBs, q) {
     shown++;
   });
 
-  if (shownCount) shownCount.textContent = `${formatNum(shown)} shown`;
+if (shownCount) shownCount.textContent = `${shown} / ${INCLUDED_PAPERS.length} shown`;
 
   if (shown === 0) {
     papers.innerHTML = `<p class="muted">No papers match the selected filters.</p>`;

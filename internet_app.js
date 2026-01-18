@@ -1,6 +1,7 @@
 /* =========================================================
    internet_app.js
    Bootstrap + DOM wiring + chart sort buttons
+   ✅ FIX: Top/Bottom controls chart view ONLY (not the filters)
 ========================================================= */
 (() => {
   "use strict";
@@ -15,22 +16,20 @@
 
   const { $, MultiSelect, buildTypeOptions, buildYearOptions, buildPublisherOptions } = U;
 
-  /* ---------- Data ---------- */
   const SOURCES = Array.isArray(window.INTERNET_SOURCES) ? window.INTERNET_SOURCES : [];
   const TOPIC_KEYS = Array.isArray(window.TOPIC_KEYS) ? window.TOPIC_KEYS : [];
   const TOPIC_FREQUENCY = window.TOPIC_FREQUENCY || {};
   const topicLabel = typeof window.topicLabel === "function" ? window.topicLabel : (k) => k;
 
-  /* ---------- State ---------- */
   const state = {
     search: "",
     types: new Set(),
     years: new Set(),
     publishers: new Set(),
-    chartSort: "desc" // used by topic chart
+    chartSort: "desc",
+    chartView: "all" // ✅ all | top10 | bottom10
   };
 
-  /* ---------- Mount DOM ---------- */
   const dom = {
     searchInput: $("#searchInput"),
     clearSearchBtn: $("#clearSearchBtn"),
@@ -51,25 +50,21 @@
 
     topicChart: $("#topicChart"),
 
-    // page nav
     scrollUpBtn: $("#scrollUpBtn"),
     scrollDownBtn: $("#scrollDownBtn")
   };
 
-  // Guard
   if (!dom.searchInput || !dom.resultsList || !dom.showingLine || !dom.topicChart) {
     console.warn("[internet_app.js] Missing required DOM nodes. Check internet.html IDs.");
     return;
   }
 
-  /* ---------- Multi-select mounts ---------- */
   const typeMulti = new MultiSelect({
     mount: $("#typeMulti"),
     options: buildTypeOptions({ sources: SOURCES, topicKeys: TOPIC_KEYS, topicLabel }),
     placeholder: "All types",
     onChange: (sel) => {
       state.types = sel;
-      setTopBottomActive(null); // manual type changes cancel quick-select highlight
       render();
     }
   });
@@ -88,37 +83,25 @@
     onChange: (sel) => { state.publishers = sel; render(); }
   });
 
-  /* ---------- Render wrapper ---------- */
   function render() {
     R.render({ sources: SOURCES, state, dom, topicLabel });
   }
 
-  /* ---------- Actions wrappers ---------- */
   function clearAll() {
-    setTopBottomActive(null);
+    state.chartView = "all";
+    if (dom.selectTop10Btn) dom.selectTop10Btn.setAttribute("aria-pressed", "false");
+    if (dom.selectBottom10Btn) dom.selectBottom10Btn.setAttribute("aria-pressed", "false");
     R.clearAll({ state, dom, typeMulti, yearMulti, publisherMulti, renderFn: render });
   }
 
-  function selectTopOrBottomTypes(mode /* "top"|"bottom" */) {
-    R.selectTopOrBottomTypes({
-      mode,
-      topicKeys: TOPIC_KEYS,
-      topicFrequency: TOPIC_FREQUENCY,
-      topicLabel,
-      state,
-      typeMulti,
-      renderFn: render
-    });
-  }
-
-  function setChartSort(mode /* "asc" | "desc" */) {
+  function setChartSort(mode) {
     state.chartSort = mode;
     if (dom.sortTypeDescBtn) dom.sortTypeDescBtn.setAttribute("aria-pressed", mode === "desc" ? "true" : "false");
     if (dom.sortTypeAscBtn) dom.sortTypeAscBtn.setAttribute("aria-pressed", mode === "asc" ? "true" : "false");
     render();
   }
 
-  // ✅ segmented switch behavior for Top/Bottom (like Asc/Desc)
+  // ✅ segmented switch behavior for Top/Bottom chart view
   function setTopBottomActive(active /* "top" | "bottom" | null */) {
     if (!dom.selectTop10Btn || !dom.selectBottom10Btn) return;
 
@@ -127,18 +110,15 @@
       dom.selectBottom10Btn.setAttribute("aria-pressed", "false");
       return;
     }
-
     if (active === "bottom") {
       dom.selectTop10Btn.setAttribute("aria-pressed", "false");
       dom.selectBottom10Btn.setAttribute("aria-pressed", "true");
       return;
     }
-
     dom.selectTop10Btn.setAttribute("aria-pressed", "false");
     dom.selectBottom10Btn.setAttribute("aria-pressed", "false");
   }
 
-  /* ---------- Events ---------- */
   dom.searchInput.addEventListener("input", () => {
     state.search = dom.searchInput.value || "";
     render();
@@ -154,22 +134,22 @@
   dom.clearFiltersBtn?.addEventListener("click", clearAll);
   dom.emptyClearBtn?.addEventListener("click", clearAll);
 
-  // Top/Bottom segmented switch
+  // ✅ Top/Bottom now ONLY changes chart view (not filters)
   dom.selectTop10Btn?.addEventListener("click", () => {
+    state.chartView = "top10";
     setTopBottomActive("top");
-    selectTopOrBottomTypes("top");
+    R.selectTopOrBottomTypes({ mode: "top", state, renderFn: render, dom });
   });
 
   dom.selectBottom10Btn?.addEventListener("click", () => {
+    state.chartView = "bottom10";
     setTopBottomActive("bottom");
-    selectTopOrBottomTypes("bottom");
+    R.selectTopOrBottomTypes({ mode: "bottom", state, renderFn: render, dom });
   });
 
-  // Sort segmented switch
   dom.sortTypeDescBtn?.addEventListener("click", () => setChartSort("desc"));
   dom.sortTypeAscBtn?.addEventListener("click", () => setChartSort("asc"));
 
-  /* ---------- Page scroll navigation ---------- */
   if (dom.scrollUpBtn && dom.scrollDownBtn) {
     dom.scrollUpBtn.addEventListener("click", () => {
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -179,7 +159,6 @@
     });
   }
 
-  /* ---------- Init ---------- */
   setTopBottomActive(null);
   setChartSort("desc");
 })();

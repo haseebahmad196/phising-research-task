@@ -1,6 +1,9 @@
 /* =========================================================
    internet_render.js
    Filtering + cards + topic chart render (clean)
+   ✅ FIX: Top/Bottom controls ONLY chart view (does NOT change filters)
+   ✅ FIX: Bottom 10 shows the 10 lowest-frequency types (real counts)
+   ✅ CHANGE: remove percentage display
 ========================================================= */
 (() => {
   "use strict";
@@ -24,7 +27,8 @@
       source.title,
       source.publisher,
       source.url,
-      ...(source.definitions || []).map(d => d.quote)
+      ...(source.definitions || []).map(d => d.quote),
+      ...(source.definitions || []).map(d => d.where)
     ].map(toLowerSafe).join(" \n ");
 
     return hay.includes(q);
@@ -46,8 +50,8 @@
   }
 
   function applyFilters(allSources, state) {
-    const q = toLowerSafe(state.search.trim());
-    return allSources.filter(s => {
+    const q = toLowerSafe((state.search || "").trim());
+    return (allSources || []).filter(s => {
       if (!s || s.kept === false) return false;
       return (
         matchesSearch(s, q) &&
@@ -61,7 +65,7 @@
   /* ---------- Topic frequency from filtered sources ---------- */
   function buildTopicCounts(filteredSources) {
     const counts = {};
-    for (const s of filteredSources) {
+    for (const s of (filteredSources || [])) {
       for (const d of (s.definitions || [])) {
         if (!d || !d.topicKey) continue;
         counts[d.topicKey] = (counts[d.topicKey] || 0) + 1;
@@ -70,7 +74,7 @@
     return counts;
   }
 
-  function renderTopicChart({ chartEl, counts, topicLabel, sortMode }) {
+  function renderTopicChart({ chartEl, counts, topicLabel, sortMode, chartView }) {
     if (!chartEl) return;
 
     const entries = Object.entries(counts || {})
@@ -84,14 +88,43 @@
 
     const maxVal = entries.reduce((m, x) => Math.max(m, x.value), 0) || 1;
 
+    // Sort base list by frequency (asc/desc)
     const sorted = stableSort(entries, (a, b) => {
       const diff = (sortMode === "asc") ? (a.value - b.value) : (b.value - a.value);
       if (diff !== 0) return diff;
       return a.label.localeCompare(b.label, undefined, { sensitivity: "base" });
     });
 
-    chartEl.innerHTML = sorted.map(row => {
-      const pct = Math.round((row.value / maxVal) * 100);
+    // ✅ Chart view slicing (does NOT change filters)
+    let view = sorted;
+    if (chartView === "top10") {
+      // top10 based on DESC frequency
+      const desc = stableSort(entries, (a, b) => {
+        const diff = (b.value - a.value);
+        if (diff !== 0) return diff;
+        return a.label.localeCompare(b.label, undefined, { sensitivity: "base" });
+      });
+      view = desc.slice(0, 10);
+      // If current sortMode is asc, keep asc ordering within that subset
+      if (sortMode === "asc") {
+        view = stableSort(view, (a, b) => (a.value - b.value) || a.label.localeCompare(b.label, undefined, { sensitivity: "base" }));
+      }
+    } else if (chartView === "bottom10") {
+      // bottom10 based on ASC frequency (10 smallest)
+      const asc = stableSort(entries, (a, b) => {
+        const diff = (a.value - b.value);
+        if (diff !== 0) return diff;
+        return a.label.localeCompare(b.label, undefined, { sensitivity: "base" });
+      });
+      view = asc.slice(0, 10);
+      // If current sortMode is desc, show these bottom10 in descending order (still bottom set)
+      if (sortMode === "desc") {
+        view = stableSort(view, (a, b) => (b.value - a.value) || a.label.localeCompare(b.label, undefined, { sensitivity: "base" }));
+      }
+    }
+
+    chartEl.innerHTML = view.map(row => {
+      const pct = Math.round((row.value / maxVal) * 100); // only for bar width scaling
       return `
         <div class="tRow" role="row">
           <div class="tLabel" title="${escapeHtml(row.label)}">${escapeHtml(row.label)}</div>
@@ -100,7 +133,6 @@
           </div>
           <div class="tVal">
             <span>${row.value}</span>
-            <span class="tPct">${pct}%</span>
           </div>
         </div>
       `;
@@ -208,24 +240,25 @@
   /* ---------- Render + Actions ---------- */
   function render({ sources, state, dom, topicLabel }) {
     const filtered = applyFilters(sources, state);
-    const total = sources.filter(s => s && s.kept !== false).length;
+    const total = (sources || []).filter(s => s && s.kept !== false).length;
 
-    dom.showingLine.textContent = `Showing ${filtered.length} of ${total} sources`;
+    if (dom.showingLine) dom.showingLine.textContent = `Showing ${filtered.length} of ${total} sources`;
+
     if (dom.resultsMeta) {
-      dom.resultsMeta.textContent = `${filtered.length} result${filtered.length === 1 ? "" : "s"} • collapsed by default`;
+      dom.resultsMeta.textContent = `${filtered.length} result${filtered.length === 1 ? "" : "s"}`;
     }
 
-    // ✅ Topic chart (only summary now)
     const topicCounts = buildTopicCounts(filtered);
     renderTopicChart({
       chartEl: dom.topicChart,
       counts: topicCounts,
       topicLabel,
-      sortMode: state.chartSort || "desc"
+      sortMode: state.chartSort || "desc",
+      chartView: state.chartView || "all"
     });
 
     if (filtered.length === 0) {
-      dom.resultsList.innerHTML = "";
+      if (dom.resultsList) dom.resultsList.innerHTML = "";
       if (dom.emptyState) dom.emptyState.hidden = false;
       return;
     }
@@ -238,42 +271,40 @@
       return String(a.title || "").localeCompare(String(b.title || ""), undefined, { sensitivity: "base" });
     });
 
-    dom.resultsList.innerHTML = sorted.map(s => buildSourceCard(s, topicLabel)).join("");
-    wireCardInteractions(dom.resultsList);
+    if (dom.resultsList) {
+      dom.resultsList.innerHTML = sorted.map(s => buildSourceCard(s, topicLabel)).join("");
+      wireCardInteractions(dom.resultsList);
+    }
   }
 
   function clearAll({ state, dom, typeMulti, yearMulti, publisherMulti, renderFn }) {
     state.search = "";
-    dom.searchInput.value = "";
+    if (dom.searchInput) dom.searchInput.value = "";
     state.types = new Set();
     state.years = new Set();
     state.publishers = new Set();
+    state.chartView = "all";
 
     typeMulti.setSelected([]);
     yearMulti.setSelected([]);
     publisherMulti.setSelected([]);
 
+    if (dom.selectTop10Btn) dom.selectTop10Btn.setAttribute("aria-pressed", "false");
+    if (dom.selectBottom10Btn) dom.selectBottom10Btn.setAttribute("aria-pressed", "false");
+
     renderFn();
   }
 
-  function selectTopOrBottomTypes({ mode, topicKeys, topicFrequency, topicLabel, state, typeMulti, renderFn }) {
-    const keys = [...(topicKeys || [])];
+  // ✅ now only sets chart view (no filter changes)
+  function selectTopOrBottomTypes({ mode, state, renderFn, dom }) {
+    state.chartView = (mode === "top") ? "top10" : "bottom10";
 
-    const sorted = stableSort(keys, (a, b) => {
-      const fa = safeInt(topicFrequency[a], 0);
-      const fb = safeInt(topicFrequency[b], 0);
-      const diff = (mode === "top") ? (fb - fa) : (fa - fb);
-      if (diff !== 0) return diff;
-      return topicLabel(a).localeCompare(topicLabel(b), undefined, { sensitivity: "base" });
-    });
+    if (dom.selectTop10Btn) dom.selectTop10Btn.setAttribute("aria-pressed", mode === "top" ? "true" : "false");
+    if (dom.selectBottom10Btn) dom.selectBottom10Btn.setAttribute("aria-pressed", mode === "bottom" ? "true" : "false");
 
-    const picked = sorted.slice(0, 10);
-    state.types = new Set(picked);
-    typeMulti.setSelected(picked);
     renderFn();
   }
 
-  /* ---------- Export ---------- */
   window.InternetRender = {
     applyFilters,
     render,
