@@ -4,12 +4,21 @@
 const $ = (id) => document.getElementById(id);
 
 function safeArray(x) { return Array.isArray(x) ? x : []; }
+
 function escapeHtml(str) {
   return String(str ?? "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
+}
+
+/* ✅ NEW: consistent numeric formatting */
+function formatNum(v) {
+  if (v == null || v === "") return "–";
+  const n = Number(v);
+  if (Number.isFinite(n)) return n.toLocaleString("en-US"); // 19,500 etc.
+  return escapeHtml(String(v));
 }
 
 /* =========================
@@ -44,19 +53,19 @@ const internetMethod = $("internetMethod");
 const internetResults = $("internetResults");
 
 /* ✅ NEW: Internet filters DOM (optional; code guards if missing) */
-const internetSearchInput = $("internetSearchInput");     // text search across title+quote+publisher
-const internetTypeFilter = $("internetTypeFilter");       // <select multiple> or single select
-const internetYearFilter = $("internetYearFilter");       // <select multiple>
-const internetPublisherFilter = $("internetPublisherFilter"); // <select multiple>
+const internetSearchInput = $("internetSearchInput");
+const internetTypeFilter = $("internetTypeFilter");
+const internetYearFilter = $("internetYearFilter");
+const internetPublisherFilter = $("internetPublisherFilter");
 const internetClearBtn = $("internetClearBtn");
 const internetSelectTop10Btn = $("internetSelectTop10Btn");
 const internetSelectBottom10Btn = $("internetSelectBottom10Btn");
 
 /* ✅ NEW: Internet summary DOM (optional; code guards if missing) */
-const internetShownLine = $("internetShownLine");         // "Showing X of Y sources"
-const internetSummaryYear = $("internetSummaryYear");     // breakdown by year
-const internetSummaryPublisher = $("internetSummaryPublisher"); // breakdown by publisher
-const internetSummaryType = $("internetSummaryType");     // breakdown by type (definition entries)
+const internetShownLine = $("internetShownLine");
+const internetSummaryYear = $("internetSummaryYear");
+const internetSummaryPublisher = $("internetSummaryPublisher");
+const internetSummaryType = $("internetSummaryType");
 
 /* Tabs */
 const tabLiterature = $("tab-literature");
@@ -64,9 +73,9 @@ const tabInternet = $("tab-internet");
 const pageLiterature = $("page-literature");
 const pageInternet = $("page-internet");
 
-/* Scroll FAB */
-const scrollFab = $("scrollFab");
-const scrollFabIcon = $("scrollFabIcon");
+/* ✅ NEW: Page arrows (review page) */
+const scrollUpBtn = $("scrollUpBtn");
+const scrollDownBtn = $("scrollDownBtn");
 
 /* =========================
    DATA GUARDS
@@ -80,7 +89,7 @@ const TOPICS_SAFE = safeArray(typeof TOPICS !== "undefined" ? TOPICS : []);
    GLOBAL TOPIC FREQUENCY (STATIC)
 ========================= */
 const GLOBAL_FREQ = {};
-TOPICS_SAFE.forEach(t => GLOBAL_FREQ[t.key] = 0);
+TOPICS_SAFE.forEach(t => { GLOBAL_FREQ[t.key] = 0; });
 
 INCLUDED_PAPERS.forEach(p => {
   TOPICS_SAFE.forEach(t => {
@@ -100,20 +109,25 @@ const RESEARCH_SAFE = (typeof RESEARCH !== "undefined" && RESEARCH) ? RESEARCH :
   exclusion: []
 };
 
-taskSummary.innerHTML = `
-  <strong>Aim:</strong> ${escapeHtml(RESEARCH_SAFE.goal)}<br>
-  <strong>Research Questions:</strong> ${safeArray(RESEARCH_SAFE.questions).map(escapeHtml).join(" • ") || "—"}
-`;
+if (taskSummary) {
+  taskSummary.innerHTML = `
+    <strong>Aim:</strong> ${escapeHtml(RESEARCH_SAFE.goal)}<br>
+    <strong>Research Questions:</strong> ${safeArray(RESEARCH_SAFE.questions).map(escapeHtml).join(" • ") || "—"}
+  `;
+}
 
-method.innerHTML = `
-  <p><strong>Query:</strong> ${escapeHtml(RESEARCH_SAFE.query)}</p>
-  <p><strong>Databases:</strong> ${safeArray(RESEARCH_SAFE.databases).map(escapeHtml).join(", ") || "—"}</p>
-  <p><strong>Inclusion:</strong> ${safeArray(RESEARCH_SAFE.inclusion).map(escapeHtml).join(" • ") || "—"}</p>
-  <p><strong>Exclusion:</strong> ${safeArray(RESEARCH_SAFE.exclusion).map(escapeHtml).join(" • ") || "—"}</p>
-`;
+if (method) {
+  method.innerHTML = `
+    <p><strong>Query:</strong> ${escapeHtml(RESEARCH_SAFE.query)}</p>
+    <p><strong>Databases:</strong> ${safeArray(RESEARCH_SAFE.databases).map(escapeHtml).join(", ") || "—"}</p>
+    <p><strong>Inclusion:</strong> ${safeArray(RESEARCH_SAFE.inclusion).map(escapeHtml).join(" • ") || "—"}</p>
+    <p><strong>Exclusion:</strong> ${safeArray(RESEARCH_SAFE.exclusion).map(escapeHtml).join(" • ") || "—"}</p>
+  `;
+}
 
 /* =========================
    RESULT COUNTS TABLE
+   ✅ FIX: numbers aligned + formatted
 ========================= */
 const RC = (typeof RESULT_COUNTS !== "undefined" && RESULT_COUNTS) ? RESULT_COUNTS : {};
 const perDb = safeArray(RC.perDatabase);
@@ -127,33 +141,35 @@ const cleanPerDb = perDb.filter(r => {
   return true;
 });
 
-resultCounts.innerHTML = `
-  <table class="table">
-    <thead>
-      <tr>
-        <th>Database</th>
-        <th>Hits</th>
-        <th>Screened</th>
-        <th>Kept</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${cleanPerDb.map(r => `
+if (resultCounts) {
+  resultCounts.innerHTML = `
+    <table class="table">
+      <thead>
         <tr>
-          <td>${escapeHtml(r.db)}</td>
-          <td>${escapeHtml(r.hits ?? "-")}</td>
-          <td>${escapeHtml(r.screened ?? "-")}</td>
-          <td>${escapeHtml(r.kept ?? "-")}</td>
+          <th>Database</th>
+          <th class="num">Hits</th>
+          <th class="num">Screened</th>
+          <th class="num">Kept</th>
         </tr>
-      `).join("")}
-    </tbody>
-  </table>
-`;
+      </thead>
+      <tbody>
+        ${cleanPerDb.map(r => `
+          <tr>
+            <td>${escapeHtml(r.db)}</td>
+            <td class="num">${formatNum(r.hits)}</td>
+            <td class="num">${formatNum(r.screened)}</td>
+            <td class="num">${formatNum(r.kept)}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
 
 /* =========================
    TOPIC FREQUENCY
 ========================= */
-paperCount.innerText = `Based on ${INCLUDED_PAPERS.length} paper(s).`;
+if (paperCount) paperCount.innerText = `Based on ${INCLUDED_PAPERS.length} paper(s).`;
 
 function getTopicListSorted() {
   return TOPICS_SAFE
@@ -170,11 +186,13 @@ function renderFrequency(mode = "top10") {
   if (mode === "top10") view = list.slice(0, 10);
   if (mode === "bottom10") view = list.slice(Math.max(list.length - 10, 0));
 
+  if (!frequency) return;
+
   frequency.innerHTML = view.map(t => `
     <div class="bar-row">
       <div class="bar-label">
         <span><strong>${escapeHtml(t.label)}</strong></span>
-        <span>${t.count} / ${INCLUDED_PAPERS.length}</span>
+        <span>${formatNum(t.count)} / ${formatNum(INCLUDED_PAPERS.length)}</span>
       </div>
       <div class="bar-track">
         <div class="bar-fill" style="width:${(t.count / max) * 100}%"></div>
@@ -201,38 +219,47 @@ setFreqActive(freqTop10Btn);
 const YEARS = [...new Set(INCLUDED_PAPERS.map(p => p.year).filter(Boolean))].sort((a,b)=>b-a);
 const DBS = [...new Set(INCLUDED_PAPERS.map(p => p.database).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
 
-// Year chips
-yearFilters.innerHTML = YEARS.map(y => `
-  <label class="chip">
-    <input type="checkbox" value="${y}" checked>
-    <span>${y}</span>
-  </label>
-`).join("") || `<p class="muted">No year data available.</p>`;
+if (yearFilters) {
+  yearFilters.innerHTML = YEARS.map(y => `
+    <label class="chip">
+      <input type="checkbox" value="${y}" checked>
+      <span>${y}</span>
+    </label>
+  `).join("") || `<p class="muted">No year data available.</p>`;
+}
 
-// DB chips
-dbFilters.innerHTML = DBS.map(db => `
-  <label class="chip">
-    <input type="checkbox" value="${escapeHtml(db)}" checked>
-    <span>${escapeHtml(db)}</span>
-  </label>
-`).join("") || `<p class="muted">No database source data available.</p>`;
+if (dbFilters) {
+  dbFilters.innerHTML = DBS.map(db => `
+    <label class="chip">
+      <input type="checkbox" value="${escapeHtml(db)}" checked>
+      <span>${escapeHtml(db)}</span>
+    </label>
+  `).join("") || `<p class="muted">No database source data available.</p>`;
+}
 
-// Topic chips
-filters.innerHTML = TOPICS_SAFE.map(t => `
-  <label class="chip">
-    <input type="checkbox" value="${t.key}" checked>
-    <span>${escapeHtml(t.label)}</span>
-    <span class="count">(${GLOBAL_FREQ[t.key] || 0})</span>
-  </label>
-`).join("");
+if (filters) {
+  filters.innerHTML = TOPICS_SAFE.map(t => `
+    <label class="chip">
+      <input type="checkbox" value="${t.key}" checked>
+      <span>${escapeHtml(t.label)}</span>
+      <span class="count">(${formatNum(GLOBAL_FREQ[t.key] || 0)})</span>
+    </label>
+  `).join("");
+}
 
 /* =========================
    TOPIC SELECT BUTTONS
+   ✅ FIX: Top/Bottom behaves like a proper toggle
 ========================= */
 const selectTop10Btn = $("selectTop10");
 const selectBottom10Btn = $("selectBottom10");
 const selectAllTopicsBtn = $("selectAllTopics");
 const clearTopicsBtn = $("clearTopics");
+
+function setTopicPresetActive(which /* "top" | "bottom" | null */) {
+  if (selectTop10Btn) selectTop10Btn.classList.toggle("active", which === "top");
+  if (selectBottom10Btn) selectBottom10Btn.classList.toggle("active", which === "bottom");
+}
 
 function setTopBottomTopics(which, n=10) {
   const sorted = [...TOPICS_SAFE]
@@ -242,6 +269,8 @@ function setTopBottomTopics(which, n=10) {
   const chosen = which === "top"
     ? new Set(sorted.slice(0,n).map(x => x.key))
     : new Set(sorted.slice(-n).map(x => x.key));
+
+  if (!filters) return;
 
   [...filters.querySelectorAll("input[type=checkbox]")].forEach(i => {
     i.checked = chosen.has(i.value);
@@ -253,25 +282,33 @@ function setTopBottomTopics(which, n=10) {
 ========================= */
 function updateMeta() {
   const q = (searchInput?.value || "").trim();
-  searchMeta.textContent = q ? `“${q.slice(0, 18)}${q.length > 18 ? "…" : ""}”` : "No search";
+  if (searchMeta) searchMeta.textContent = q ? `“${q.slice(0, 18)}${q.length > 18 ? "…" : ""}”` : "No search";
 
-  const yChecked = [...yearFilters.querySelectorAll("input:checked")].length;
-  const yTotal = [...yearFilters.querySelectorAll("input")].length;
-  yearMeta.textContent = yTotal ? `${yChecked}/${yTotal} selected` : "—";
+  if (yearFilters && yearMeta) {
+    const yChecked = [...yearFilters.querySelectorAll("input:checked")].length;
+    const yTotal = [...yearFilters.querySelectorAll("input")].length;
+    yearMeta.textContent = yTotal ? `${yChecked}/${yTotal} selected` : "—";
+  }
 
-  const dbChecked = [...dbFilters.querySelectorAll("input:checked")].length;
-  const dbTotal = [...dbFilters.querySelectorAll("input")].length;
-  dbMeta.textContent = dbTotal ? `${dbChecked}/${dbTotal} selected` : "—";
+  if (dbFilters && dbMeta) {
+    const dbChecked = [...dbFilters.querySelectorAll("input:checked")].length;
+    const dbTotal = [...dbFilters.querySelectorAll("input")].length;
+    dbMeta.textContent = dbTotal ? `${dbChecked}/${dbTotal} selected` : "—";
+  }
 
-  const tChecked = [...filters.querySelectorAll("input:checked")].length;
-  const tTotal = [...filters.querySelectorAll("input")].length;
-  topicMeta.textContent = tTotal ? `${tChecked}/${tTotal} selected` : "—";
+  if (filters && topicMeta) {
+    const tChecked = [...filters.querySelectorAll("input:checked")].length;
+    const tTotal = [...filters.querySelectorAll("input")].length;
+    topicMeta.textContent = tTotal ? `${tChecked}/${tTotal} selected` : "—";
+  }
 }
 
 /* =========================
    RENDER PAPERS (collapsed by default)
 ========================= */
 function renderPapers(activeTopics, activeYears, activeDBs, q) {
+  if (!papers) return;
+
   papers.innerHTML = "";
   let shown = 0;
 
@@ -290,7 +327,7 @@ function renderPapers(activeTopics, activeYears, activeDBs, q) {
     const hasDates = Boolean(p.dates?.received || p.dates?.revised || p.dates?.accepted);
 
     const article = document.createElement("article");
-    article.className = "paper collapsed"; // ✅ collapsed by default
+    article.className = "paper collapsed";
 
     article.innerHTML = `
       <div class="paper-head">
@@ -324,7 +361,7 @@ function renderPapers(activeTopics, activeYears, activeDBs, q) {
           return `
             <div class="topic">
               <div class="topic-name">${escapeHtml(t.label)}</div>
-              <div class="topic-count">Defined in ${GLOBAL_FREQ[t.key] || 0} paper(s)</div>
+              <div class="topic-count">Defined in ${formatNum(GLOBAL_FREQ[t.key] || 0)} paper(s)</div>
               ${
                 d
                   ? `<div class="topic-quote">“${escapeHtml(d.quote)}”</div>
@@ -350,7 +387,7 @@ function renderPapers(activeTopics, activeYears, activeDBs, q) {
     shown++;
   });
 
-  shownCount.textContent = `${shown} shown`;
+  if (shownCount) shownCount.textContent = `${formatNum(shown)} shown`;
 
   if (shown === 0) {
     papers.innerHTML = `<p class="muted">No papers match the selected filters.</p>`;
@@ -361,6 +398,8 @@ function renderPapers(activeTopics, activeYears, activeDBs, q) {
    UPDATE
 ========================= */
 function update() {
+  if (!filters || !yearFilters || !dbFilters) return;
+
   const activeTopics = [...filters.querySelectorAll("input:checked")].map(i => i.value);
   const activeYears  = [...yearFilters.querySelectorAll("input:checked")].map(i => Number(i.value));
   const activeDBs    = [...dbFilters.querySelectorAll("input:checked")].map(i => i.value);
@@ -370,18 +409,38 @@ function update() {
   renderPapers(activeTopics, activeYears, activeDBs, q);
 }
 
-filters.addEventListener("change", update);
-yearFilters.addEventListener("change", update);
-dbFilters.addEventListener("change", update);
-searchInput.addEventListener("input", update);
+/* Reset preset button state when user manually changes topics */
+filters?.addEventListener("change", () => {
+  setTopicPresetActive(null);
+  update();
+});
 
-selectTop10Btn?.addEventListener("click", () => { setTopBottomTopics("top", 10); update(); });
-selectBottom10Btn?.addEventListener("click", () => { setTopBottomTopics("bottom", 10); update(); });
+yearFilters?.addEventListener("change", update);
+dbFilters?.addEventListener("change", update);
+searchInput?.addEventListener("input", update);
+
+selectTop10Btn?.addEventListener("click", () => {
+  setTopicPresetActive("top");
+  setTopBottomTopics("top", 10);
+  update();
+});
+
+selectBottom10Btn?.addEventListener("click", () => {
+  setTopicPresetActive("bottom");
+  setTopBottomTopics("bottom", 10);
+  update();
+});
+
 selectAllTopicsBtn?.addEventListener("click", () => {
+  setTopicPresetActive(null);
+  if (!filters) return;
   [...filters.querySelectorAll("input[type=checkbox]")].forEach(i => i.checked = true);
   update();
 });
+
 clearTopicsBtn?.addEventListener("click", () => {
+  setTopicPresetActive(null);
+  if (!filters) return;
   [...filters.querySelectorAll("input[type=checkbox]")].forEach(i => i.checked = false);
   update();
 });
@@ -405,19 +464,13 @@ tabInternet?.addEventListener("click", () => setPage("internet"));
 
 /* =========================
    INTERNET PAGE (FULL)
-   - Supports your REQUIRED structure:
-     INTERNET_SOURCES = [{ id,title,publisher,year,url,accessed,language,kept,definitions:[{topicKey,quote,where}],notes }]
-   - Collapsed cards by default
-   - Filters (multi-select if you have <select multiple>)
-   - Search across title+quote+publisher
-   - Summary: showing X of Y + breakdowns by year/publisher/type(def entries)
-   - Buttons: Clear / Select Top 10 types / Select Bottom 10 types
+   (kept as-is from your code)
 ========================= */
 
 /* --- Render strategy text --- */
 if (internetMethod) {
   internetMethod.innerHTML = `
-    <p><strong>Query:</strong> ("phishing" OR "spear-phishing") AND ("Definition")</p>
+    <p><strong>Query:</strong> ("phishing" OR "spear-phishing") AND (“Definition”)</p>
     <p><strong>Database:</strong> Google</p>
     <p><strong>Inclusion:</strong> Presents at least one definition of a type of phishing</p>
     <p><strong>Exclusion:</strong> Non-English publications (unless an English abstract fully describes the task)</p>
@@ -428,7 +481,7 @@ if (internetMethod) {
 const INTERNET_SOURCES_SAFE = safeArray(typeof INTERNET_SOURCES !== "undefined" ? INTERNET_SOURCES : [])
   .filter(s => s && s.kept !== false);
 
-/* --- Topic label helper (fallback uses TOPICS_SAFE labels if provided) --- */
+/* --- Topic label helper --- */
 function topicLabelByKey(key) {
   const hit = TOPICS_SAFE.find(t => t.key === key);
   return hit ? hit.label : key;
@@ -457,7 +510,6 @@ const INTERNET_TYPE_KEYS = uniqueSorted(
 /* --- Fill dropdowns if they exist --- */
 function fillMultiSelect(selectEl, options, labelFn = (x)=>x) {
   if (!selectEl) return;
-  // keep current selection if any
   const prevSelected = new Set([...selectEl.selectedOptions].map(o => o.value));
   selectEl.innerHTML = options.map(v => {
     const selected = prevSelected.size === 0 ? true : prevSelected.has(String(v));
@@ -469,13 +521,11 @@ fillMultiSelect(internetYearFilter, INTERNET_YEARS, (y)=>y);
 fillMultiSelect(internetPublisherFilter, INTERNET_PUBLISHERS, (p)=>p);
 fillMultiSelect(internetTypeFilter, INTERNET_TYPE_KEYS, (k)=>topicLabelByKey(k));
 
-/* --- Helpers to read multi-select values safely --- */
 function getSelectedValues(selectEl) {
-  if (!selectEl) return []; // if UI not present, treat as "no filter"
+  if (!selectEl) return [];
   return [...selectEl.selectedOptions].map(o => o.value);
 }
 
-/* --- Search matcher --- */
 function internetMatchesSearch(src, q) {
   if (!q) return true;
   const defs = safeArray(src.definitions);
@@ -489,7 +539,6 @@ function internetMatchesSearch(src, q) {
   return hay.includes(q);
 }
 
-/* --- Group definitions by topicKey --- */
 function groupDefsByTopic(defs) {
   const out = {};
   safeArray(defs).forEach(d => {
@@ -500,11 +549,10 @@ function groupDefsByTopic(defs) {
   return out;
 }
 
-/* --- Build breakdowns (year/publisher/type) --- */
 function buildInternetBreakdowns(filteredSources) {
   const byYear = {};
   const byPublisher = {};
-  const byType = {}; // counts of definition entries
+  const byType = {};
 
   filteredSources.forEach(s => {
     const y = String(s.year ?? "—");
@@ -544,11 +592,9 @@ function renderKV(obj, limit = 10) {
   `;
 }
 
-/* --- Main internet render --- */
 function renderInternet() {
   if (!internetResults) return;
 
-  // if your new HTML doesn’t have these inputs yet, we still render something sane
   const q = (internetSearchInput?.value || "").trim().toLowerCase();
   const selectedYears = getSelectedValues(internetYearFilter);
   const selectedPubs = getSelectedValues(internetPublisherFilter);
@@ -557,30 +603,22 @@ function renderInternet() {
   const total = INTERNET_SOURCES_SAFE.length;
 
   const filtered = INTERNET_SOURCES_SAFE.filter(s => {
-    // year filter
     if (selectedYears.length && s.year != null && !selectedYears.includes(String(s.year))) return false;
-
-    // publisher filter
     if (selectedPubs.length && s.publisher && !selectedPubs.includes(String(s.publisher))) return false;
 
-    // type filter: match if ANY definition topicKey in selectedTypes
     if (selectedTypes.length) {
       const has = safeArray(s.definitions).some(d => selectedTypes.includes(String(d?.topicKey)));
       if (!has) return false;
     }
 
-    // search filter
     if (!internetMatchesSearch(s, q)) return false;
-
     return true;
   });
 
-  // summary line
   if (internetShownLine) {
     internetShownLine.textContent = `Showing ${filtered.length} of ${total} sources`;
   }
 
-  // breakdowns
   const { byYear, byPublisher, byType } = buildInternetBreakdowns(filtered);
   if (internetSummaryYear) internetSummaryYear.innerHTML = renderKV(byYear, 10);
   if (internetSummaryPublisher) internetSummaryPublisher.innerHTML = renderKV(byPublisher, 10);
@@ -591,7 +629,6 @@ function renderInternet() {
     return;
   }
 
-  // cards collapsed by default
   internetResults.innerHTML = filtered.map(s => {
     const defs = safeArray(s.definitions);
     const grouped = groupDefsByTopic(defs);
@@ -638,7 +675,6 @@ function renderInternet() {
     `;
   }).join("");
 
-  // wire toggles
   [...internetResults.querySelectorAll(".paper")].forEach(article => {
     const btn = article.querySelector(".toggle");
     btn?.addEventListener("click", () => {
@@ -648,7 +684,6 @@ function renderInternet() {
   });
 }
 
-/* --- Internet buttons --- */
 function setInternetTypeSelection(keys) {
   if (!internetTypeFilter) return;
   const set = new Set(keys.map(String));
@@ -658,7 +693,6 @@ function setInternetTypeSelection(keys) {
 }
 
 function getInternetTypeCounts() {
-  // Use DEFINITION ENTRY counts (like summary does)
   const counts = {};
   INTERNET_SOURCES_SAFE.forEach(s => {
     safeArray(s.definitions).forEach(d => {
@@ -690,7 +724,6 @@ function selectInternetTopBottom(which, n=10) {
 internetClearBtn?.addEventListener("click", () => {
   if (internetSearchInput) internetSearchInput.value = "";
 
-  // reset selects to "all selected"
   [internetTypeFilter, internetYearFilter, internetPublisherFilter].forEach(sel => {
     if (!sel) return;
     [...sel.options].forEach(opt => opt.selected = true);
@@ -707,29 +740,17 @@ internetTypeFilter?.addEventListener("change", renderInternet);
 internetYearFilter?.addEventListener("change", renderInternet);
 internetPublisherFilter?.addEventListener("change", renderInternet);
 
-/* initial internet render */
 renderInternet();
 
 /* =========================
-   SCROLL FAB
+   ✅ PAGE SCROLL NAV (same as internet page)
 ========================= */
-function refreshFab() {
-  const y = window.scrollY || document.documentElement.scrollTop;
-  const show = y > 180;
-  scrollFab?.classList.toggle("show", show);
+if (scrollUpBtn && scrollDownBtn) {
+  scrollUpBtn.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
 
-  const docH = document.documentElement.scrollHeight - window.innerHeight;
-  const ratio = docH > 0 ? (y / docH) : 0;
-  if (scrollFabIcon) scrollFabIcon.textContent = (ratio > 0.35) ? "↑" : "↓";
+  scrollDownBtn.addEventListener("click", () => {
+    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+  });
 }
-window.addEventListener("scroll", refreshFab);
-refreshFab();
-
-scrollFab?.addEventListener("click", () => {
-  const y = window.scrollY || document.documentElement.scrollTop;
-  const docH = document.documentElement.scrollHeight - window.innerHeight;
-  const ratio = docH > 0 ? (y / docH) : 0;
-
-  if (ratio > 0.35) window.scrollTo({ top: 0, behavior: "smooth" });
-  else window.scrollBy({ top: window.innerHeight * 0.9, behavior: "smooth" });
-});

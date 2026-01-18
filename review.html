@@ -14,7 +14,7 @@
         <div class="brand-badge">SEC</div>
         <div class="brand-text">
           <div class="brand-title">Different Types of Phishing</div>
-          <div class="brand-subtitle">Page 1 • Scientific Literature Review</div>
+          <div class="brand-subtitle">Page 1  Scientific Literature Review</div>
         </div>
       </div>
 
@@ -56,9 +56,9 @@
       </div>
 
       <div class="freq-toolbar">
-        <button class="seg active" id="freqTop10">Top 10</button>
-        <button class="seg" id="freqBottom10">Bottom 10</button>
-        <button class="seg" id="freqAll">All</button>
+        <button class="seg active" id="freqTop10" type="button">Top 10</button>
+        <button class="seg" id="freqBottom10" type="button">Bottom 10</button>
+        <button class="seg" id="freqAll" type="button">All</button>
       </div>
 
       <div id="frequency"></div>
@@ -68,7 +68,7 @@
     <section class="panel">
       <div class="panel-head">
         <h2>Filters</h2>
-        <p class="muted">Use dropdowns to narrow results. Papers are collapsed by default.</p>
+        <p class="muted">Use dropdowns to narrow results</p>
       </div>
 
       <div class="filter-shell">
@@ -124,10 +124,10 @@
 
           <div class="drop-body">
             <div class="drop-actions">
-              <button id="selectTop10" class="btn">Select Top 10</button>
-              <button id="selectBottom10" class="btn btn-ghost">Select Bottom 10</button>
-              <button id="selectAllTopics" class="btn btn-ghost">Select All</button>
-              <button id="clearTopics" class="btn btn-ghost">Clear</button>
+              <button id="selectTop10" class="btn" type="button">Select Top 10</button>
+              <button id="selectBottom10" class="btn btn-ghost" type="button">Select Bottom 10</button>
+              <button id="selectAllTopics" class="btn btn-ghost" type="button">Select All</button>
+              <button id="clearTopics" class="btn btn-ghost" type="button">Clear</button>
             </div>
             <div id="filters" class="chip-row"></div>
           </div>
@@ -139,7 +139,7 @@
       <div class="panel-head split">
         <div>
           <h2>Paper-by-Paper Definitions (Exact Quotes)</h2>
-          <p class="muted">Click a paper to expand definitions. Collapsed by default.</p>
+          <p class="muted">Click the down-arrow on the right side of a paper to expand its definitions.</p>
         </div>
         <div class="panel-tools">
           <span class="stat-pill" id="shownCount">0 shown</span>
@@ -149,9 +149,11 @@
     </section>
   </main>
 
-  <button id="scrollFab" class="scroll-fab" aria-label="Scroll">
-    <span id="scrollFabIcon">↓</span>
-  </button>
+  <!-- ✅ SAME page arrows as internet page -->
+  <div class="pageNav" aria-hidden="false">
+    <button id="scrollUpBtn" class="pageNav__btn" title="Scroll to top" aria-label="Scroll to top">⌃</button>
+    <button id="scrollDownBtn" class="pageNav__btn" title="Scroll to bottom" aria-label="Scroll to bottom">⌄</button>
+  </div>
 
   <!-- ✅ Literature scripts ONLY -->
   <script src="data.js"></script>

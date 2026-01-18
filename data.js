@@ -8,7 +8,7 @@ const RESEARCH = {
     "How are these topics defined?",
     "What is the frequency of the topics?"
   ],
-  query: '("phishing") AND ("Definition")',
+  query: '("phishing" OR "spear-phishing") AND ("Definition")',
   databases: ["Google Scholar", "IEEE Xplore", "ACM Digital Library"],
   inclusion: [
     "Peer-reviewed article (2020–2024)",
@@ -18,20 +18,21 @@ const RESEARCH = {
   searchResults: [
     {
       source: "Google Scholar",
-      query: '("phishing") AND ("Definition")',
+      query: '("phishing" OR "spear-phishing") AND ("Definition")',
       results: "About 19,500 results (0.04 sec)"
     }
   ]
 };
+
 
 /* =========================
    RESULT COUNTS
 ========================= */
 const RESULT_COUNTS = {
   perDatabase: [
-    { db: "ACM Digital Library", hits: 867, screened: 20, kept: 7, duplicated: 2 },
-    { db: "IEEE Xplore",        hits: 0, screened: 26, kept: 3, duplicated: 3 }, // +1 screened, +1 kept
-    { db: "Google Scholar",     hits: 19500, screened: 53, kept: 28 }
+    { db: "ACM Digital Library", hits: 865, screened: 30, kept: 11, duplicated: 2 },
+    { db: "IEEE Xplore",        hits: 400, screened: 300, kept: 46, duplicated: 3 }, // +1 screened, +1 kept
+    { db: "Google Scholar",     hits: 18900, screened: 500, kept: 16 }
   ],
   deduplication: {
     uniqueAfterDedup: 42, // 41 → 42
