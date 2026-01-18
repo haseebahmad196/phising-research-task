@@ -8,13 +8,20 @@
 </head>
 
 <body>
+
+  <!-- ✅ Page navigation arrows (inside body) -->
+  <div class="pageNav" aria-hidden="false">
+    <button id="scrollUpBtn" class="pageNav__btn" title="Scroll to top" aria-label="Scroll to top">↑</button>
+    <button id="scrollDownBtn" class="pageNav__btn" title="Scroll to bottom" aria-label="Scroll to bottom">↓</button>
+  </div>
+
   <header class="topbar">
     <div class="container topbar__inner">
       <div class="brand">
         <div class="brand__mark" aria-hidden="true">Φ</div>
         <div class="brand__text">
           <div class="brand__title">Different Types of Phishing</div>
-         
+          <div class="brand__subtitle">Page 2 • Internet Search (Google)</div>
         </div>
       </div>
 
@@ -54,49 +61,23 @@
       </div>
     </section>
 
-    <!-- 2) TOPIC FREQUENCY (MIDDLE) -->
+    <!-- 2) TOPIC FREQUENCY (SAME STYLE AS RESEARCH PAGE) -->
     <section class="card summary">
       <div class="card__header">
         <h2 class="card__title">Topic Frequency</h2>
         <div class="card__subtitle" id="showingLine">Showing 0 of 0 sources</div>
       </div>
 
-      <div class="topicSummary">
-        <div class="topicSummary__head">
-          <div>
-            <div class="topicSummary__k">Frequency by phishing type (definition entries)</div>
-          </div>
-
-          <div class="chartLegend">
-            <span class="legendDot" aria-hidden="true"></span>
-            <span class="muted tiny">Bigger bar = more definitions</span>
-          </div>
-        </div>
-
-        <!-- ✅ controls (professional segmented switches) -->
-        <div class="topicSummary__controls">
-          <div class="controlBlock" aria-label="Sorting controls">
-            <div class="controlLabel">Sort</div>
-            <div class="seg seg--tight" aria-label="Topic chart sorting">
-              <button id="sortTypeDescBtn" type="button" aria-pressed="true" title="Sort by frequency (descending)">Desc</button>
-              <button id="sortTypeAscBtn" type="button" aria-pressed="false" title="Sort by frequency (ascending)">Asc</button>
-            </div>
-          </div>
-
-          <div class="controlBlock" aria-label="Quick selection controls">
-            <div class="controlLabel">Quick select</div>
-            <div class="seg seg--tight" aria-label="Select top or bottom types">
-              <button id="selectTop10Btn" type="button" aria-pressed="false" title="Select Top 10 types">Top 10</button>
-              <button id="selectBottom10Btn" type="button" aria-pressed="false" title="Select Bottom 10 types">Bottom 10</button>
-            </div>
-          </div>
-        </div>
-
-        <div id="topicChart" class="topicChart" aria-label="Topic frequency chart" role="img"></div>
+      <div class="freq-toolbar">
+        <button class="seg active" id="freqTop10" type="button">Top 10</button>
+        <button class="seg" id="freqBottom10" type="button">Bottom 10</button>
+        <button class="seg" id="freqAll" type="button">All</button>
       </div>
+
+      <div id="frequency"></div>
     </section>
 
-    <!-- 3) FILTERS (BOTTOM) -->
+    <!-- 3) FILTERS -->
     <section class="card filters">
       <div class="card__header">
         <h2 class="card__title">Filters</h2>
@@ -142,7 +123,7 @@
     <!-- RESULTS -->
     <section class="results">
       <div class="results__header">
-        <h2 class="results__title" id="resultsTitle">Sources</h2>
+        <h2 class="results__title" id="resultsTitle">List of Web Sources </h2>
         <div class="results__meta" id="resultsMeta"></div>
       </div>
 
@@ -157,12 +138,6 @@
     </section>
 
   </main>
-
-  <!-- ✅ Professional scroll navigation -->
-  <div class="pageNav">
-    <button id="scrollUpBtn" class="pageNav__btn" title="Scroll to top" aria-label="Scroll to top">⌃</button>
-    <button id="scrollDownBtn" class="pageNav__btn" title="Scroll to bottom" aria-label="Scroll to bottom">⌄</button>
-  </div>
 
   <script src="internet_data.js"></script>
   <script src="internet_utils.js"></script>

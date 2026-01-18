@@ -625,3 +625,48 @@ main.container{margin:18px auto;padding:0 18px 44px;}
   .tVal{justify-content:flex-start;}
   .results__header{top:120px;}
 }
+/* =========================
+   Frequency (same as research page)
+========================= */
+.freq-toolbar{
+  display:flex;
+  gap:10px;
+  margin:10px 0 6px;
+}
+
+.seg{
+  border:1px solid rgba(230,232,239,.9);
+  background:#fff;
+  padding:8px 12px;
+  border-radius:12px;
+  cursor:pointer;
+  font-weight:900;
+  font-size:.85rem;
+  color:#64748b;
+}
+
+.seg.active{
+  color:#2563eb;
+  border-color:#dbeafe;
+  box-shadow:0 0 0 4px rgba(37,99,235,.08);
+}
+
+.bar-row{ margin:14px 0; }
+.bar-label{
+  display:flex;
+  justify-content:space-between;
+  font-size:.85rem;
+  color:#64748b;
+  margin-bottom:6px;
+}
+.bar-track{
+  height:14px;
+  background:#e7efff;
+  border-radius:999px;
+  overflow:hidden;
+}
+.bar-fill{
+  height:14px;
+  background:#2563eb;
+  border-radius:999px;
+}
