@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Different Types of Phishing – Scientific Literature Review</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-badge">SEC</div>
+        <div class="brand-text">
+          <div class="brand-title">Different Types of Phishing</div>
+          <div class="brand-subtitle">Page 1 • Scientific Literature Review</div>
+        </div>
+      </div>
+
+      <!-- ✅ Separate navigation (NO tabs) -->
+      <nav class="tabs" role="navigation" aria-label="Pages">
+        <a class="tab active" href="review.html" aria-current="page">Page 1 • Scientific Review</a>
+        <a class="tab" href="internet.html">Page 2 • Internet Search</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <h1>Scientific Literature Search Strategy</h1>
+      <p class="subtitle" id="taskSummary"></p>
+    </section>
+
+    <!-- LITERATURE ONLY -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Search Strategy</h2>
+        <p class="muted">What was searched and how screening was applied.</p>
+      </div>
+      <div id="method"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Result Count (per database)</h2>
+        <p class="muted">Transparent reporting of hits → screened → kept.</p>
+      </div>
+      <div id="resultCounts"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Topic Frequency</h2>
+        <p class="muted" id="paperCount"></p>
+      </div>
+
+      <div class="freq-toolbar">
+        <button class="seg active" id="freqTop10">Top 10</button>
+        <button class="seg" id="freqBottom10">Bottom 10</button>
+        <button class="seg" id="freqAll">All</button>
+      </div>
+
+      <div id="frequency"></div>
+    </section>
+
+    <!-- FILTERS -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Filters</h2>
+        <p class="muted">Use dropdowns to narrow results. Papers are collapsed by default.</p>
+      </div>
+
+      <div class="filter-shell">
+        <details class="filter-drop" open>
+          <summary>
+            <span>Search</span>
+            <span class="summary-right">
+              <span class="summary-meta" id="searchMeta">—</span>
+              <span class="chev">▾</span>
+            </span>
+          </summary>
+          <div class="drop-body">
+            <input id="searchInput" class="input" type="search" placeholder="Search title, authors, venue..." />
+          </div>
+        </details>
+
+        <div class="drop-grid">
+          <details class="filter-drop">
+            <summary>
+              <span>Year</span>
+              <span class="summary-right">
+                <span class="summary-meta" id="yearMeta">—</span>
+                <span class="chev">▾</span>
+              </span>
+            </summary>
+            <div class="drop-body">
+              <div id="yearFilters" class="chip-row"></div>
+            </div>
+          </details>
+
+          <details class="filter-drop">
+            <summary>
+              <span>Database</span>
+              <span class="summary-right">
+                <span class="summary-meta" id="dbMeta">—</span>
+                <span class="chev">▾</span>
+              </span>
+            </summary>
+            <div class="drop-body">
+              <div id="dbFilters" class="chip-row"></div>
+            </div>
+          </details>
+        </div>
+
+        <details class="filter-drop">
+          <summary>
+            <span>Phishing Type</span>
+            <span class="summary-right">
+              <span class="summary-meta" id="topicMeta">—</span>
+              <span class="chev">▾</span>
+            </span>
+          </summary>
+
+          <div class="drop-body">
+            <div class="drop-actions">
+              <button id="selectTop10" class="btn">Select Top 10</button>
+              <button id="selectBottom10" class="btn btn-ghost">Select Bottom 10</button>
+              <button id="selectAllTopics" class="btn btn-ghost">Select All</button>
+              <button id="clearTopics" class="btn btn-ghost">Clear</button>
+            </div>
+            <div id="filters" class="chip-row"></div>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head split">
+        <div>
+          <h2>Paper-by-Paper Definitions (Exact Quotes)</h2>
+          <p class="muted">Click a paper to expand definitions. Collapsed by default.</p>
+        </div>
+        <div class="panel-tools">
+          <span class="stat-pill" id="shownCount">0 shown</span>
+        </div>
+      </div>
+      <div id="papers"></div>
+    </section>
+  </main>
+
+  <button id="scrollFab" class="scroll-fab" aria-label="Scroll">
+    <span id="scrollFabIcon">↓</span>
+  </button>
+
+  <!-- ✅ Literature scripts ONLY -->
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

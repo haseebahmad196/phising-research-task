@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Internet Search Strategy • Different Types of Phishing</title>
+  <link rel="stylesheet" href="internet.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar__inner">
+      <div class="brand">
+        <div class="brand__mark" aria-hidden="true">Φ</div>
+        <div class="brand__text">
+          <div class="brand__title">Different Types of Phishing</div>
+          <div class="brand__subtitle">Page 2 • Internet Search Strategy (Google)</div>
+        </div>
+      </div>
+
+      <nav class="topnav">
+        <a class="topnav__link" href="index.html">Home</a>
+        <a class="topnav__link" href="review.html">Page 1 • Scientific Review</a>
+        <a class="topnav__link topnav__link--active" href="internet.html">Page 2 • Internet Search</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <div class="hero__left">
+        <h1 class="hero__title">Internet Search strategy for “Different Types of Phishing”</h1>
+        <p class="hero__desc">
+          Collect web sources (Google) that provide <b>at least one definition</b> of a phishing type.
+          Definitions must be stored as <b>exact verbatim quotes</b> with clear attribution of the <b>source</b>.
+        </p>
+      </div>
+
+      <div class="hero__right">
+        <div class="pill">
+          <div class="pill__label">Database</div>
+          <div class="pill__value">Google</div>
+        </div>
+        <div class="pill">
+          <div class="pill__label">Query</div>
+          <div class="pill__value">("phishing" OR "spear-phishing") AND (“Definition”)</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card strategy">
+      <div class="card__header">
+        <h2 class="card__title">Search Strategy</h2>
+        <div class="card__subtitle">Clear documentation of the internet search approach</div>
+      </div>
+
+      <div class="strategy__grid">
+        <div class="strategy__item">
+          <div class="k">Query</div>
+          <div class="v code">("phishing" OR "spear-phishing") AND (“Definition”)</div>
+        </div>
+        <div class="strategy__item">
+          <div class="k">Database</div>
+          <div class="v">Google</div>
+        </div>
+        <div class="strategy__item">
+          <div class="k">Inclusion criteria</div>
+          <div class="v">Presents at least one definition of a type of phishing</div>
+        </div>
+        <div class="strategy__item">
+          <div class="k">Exclusion criteria</div>
+          <div class="v">Non-English publications (unless an English abstract fully describes the task)</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card filters">
+      <div class="card__header">
+        <h2 class="card__title">Filters</h2>
+        <div class="card__subtitle">Refine sources by type, year, publisher, and search query</div>
+      </div>
+
+      <div class="filters__grid">
+        <div class="field">
+          <label class="label" for="searchInput">Search</label>
+          <div class="inputWrap">
+            <input id="searchInput" class="input" type="text" placeholder="Search title, publisher, quote text..." autocomplete="off" />
+            <button id="clearSearchBtn" class="iconBtn" type="button" title="Clear search" aria-label="Clear search">✕</button>
+          </div>
+          <div class="hint">Search across <b>title + quote + publisher</b></div>
+        </div>
+
+        <div class="field">
+          <label class="label">Phishing Type</label>
+          <div id="typeMulti" class="multiMount"></div>
+          <div class="hint">Multi-select dropdown (topic keys)</div>
+        </div>
+
+        <div class="field">
+          <label class="label">Year</label>
+          <div id="yearMulti" class="multiMount"></div>
+          <div class="hint">Multi-select dropdown</div>
+        </div>
+
+        <div class="field">
+          <label class="label">Publisher / Website</label>
+          <div id="publisherMulti" class="multiMount"></div>
+          <div class="hint">Multi-select dropdown</div>
+        </div>
+      </div>
+
+      <div class="filters__actions">
+        <button id="clearFiltersBtn" class="btn btn--ghost" type="button">Clear</button>
+        <button id="selectTop10Btn" class="btn" type="button">Select Top 10 types</button>
+        <button id="selectBottom10Btn" class="btn btn--ghost" type="button">Select Bottom 10 types</button>
+      </div>
+    </section>
+
+    <section class="card summary">
+      <div class="card__header">
+        <h2 class="card__title">Results Summary</h2>
+        <div class="card__subtitle" id="showingLine">Showing 0 of 0 sources</div>
+      </div>
+
+      <!-- New: chart + lists wrapper -->
+      <div class="summary__wrap">
+        <div class="summary__chart">
+          <div class="summary__chartHead">
+            <div>
+              <div class="miniCard__k">Topic frequency (definition entries)</div>
+              <div class="muted tiny">Based on current filters • visual only (no data changes)</div>
+            </div>
+            <div class="chartLegend">
+              <span class="legendDot"></span>
+              <span class="muted tiny">Higher bar = more occurrences</span>
+            </div>
+          </div>
+          <div id="topicChart" class="chartBox" aria-label="Topic frequency chart"></div>
+        </div>
+
+        <div class="summary__lists">
+          <div class="miniCard">
+            <div class="miniCard__k">Top topics (descending)</div>
+            <div class="miniCard__v" id="summaryTopTopics"></div>
+          </div>
+          <div class="miniCard">
+            <div class="miniCard__k">Bottom topics (ascending)</div>
+            <div class="miniCard__v" id="summaryBottomTopics"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary__grid">
+        <div class="miniCard">
+          <div class="miniCard__k">By Year</div>
+          <div class="miniCard__v" id="summaryByYear"></div>
+        </div>
+        <div class="miniCard">
+          <div class="miniCard__k">By Publisher</div>
+          <div class="miniCard__v" id="summaryByPublisher"></div>
+        </div>
+        <div class="miniCard">
+          <div class="miniCard__k">By Type (definition entries)</div>
+          <div class="miniCard__v" id="summaryByType"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="results">
+      <div class="results__header">
+        <h2 class="results__title">Sources</h2>
+        <div class="results__meta" id="resultsMeta"></div>
+      </div>
+
+      <div id="resultsList" class="results__list" aria-live="polite"></div>
+
+      <div id="emptyState" class="empty" hidden>
+        <div class="empty__icon" aria-hidden="true">🔎</div>
+        <div class="empty__title">No sources match your filters</div>
+        <div class="empty__desc">Try clearing filters or broadening your search terms.</div>
+        <button id="emptyClearBtn" class="btn" type="button">Clear</button>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="footer__left">
+        <div class="footer__note">
+          <b>Rule:</b> All definitions must be stored as <b>exact verbatim quotes</b> from the webpage.
+          (No “Accessed” shown. No “Where” shown.)
+        </div>
+      </div>
+      <div class="footer__right">
+        <span class="muted">Internet page • v3</span>
+      </div>
+    </footer>
+  </main>
+
+  <script src="internet_data.js"></script>
+  <script src="internet_app.js"></script>
+</body>
+</html>
